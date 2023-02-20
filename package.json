@@ -1,0 +1,24 @@
+{
+  "name": "jobscrapper",
+  "version": "1.0.0",
+  "description": "scrp jobs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rango31/jobscrapper.git"
+  },
+  "keywords": [
+    "scrapper",
+    "puppeteer",
+    "puppeteer-extra"
+  ],
+  "author": "rango31",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rango31/jobscrapper/issues"
+  },
+  "homepage": "https://github.com/rango31/jobscrapper#readme"
+}
