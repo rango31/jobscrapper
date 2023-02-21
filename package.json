@@ -4,7 +4,8 @@
   "description": "scrp jobs",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --max-old-space-size=2192 app"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,18 @@
   "bugs": {
     "url": "https://github.com/rango31/jobscrapper/issues"
   },
-  "homepage": "https://github.com/rango31/jobscrapper#readme"
+  "homepage": "https://github.com/rango31/jobscrapper#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "moment": "^2.29.4",
+    "puppeteer": "^19.7.2",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-adblocker": "^2.13.5",
+    "puppeteer-extra-plugin-anonymize-ua": "^2.4.4",
+    "puppeteer-extra-plugin-block-resources": "^2.4.2",
+    "puppeteer-extra-plugin-recaptcha": "^3.6.6",
+    "puppeteer-extra-plugin-session": "^1.0.1",
+    "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "winston": "^3.8.2"
+  }
 }
