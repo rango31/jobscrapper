@@ -24,6 +24,7 @@
   "homepage": "https://github.com/rango31/jobscrapper#readme",
   "dependencies": {
     "dotenv": "^16.0.3",
+    "knex": "^2.4.2",
     "moment": "^2.29.4",
     "puppeteer": "^19.7.2",
     "puppeteer-extra": "^3.3.4",
@@ -33,6 +34,8 @@
     "puppeteer-extra-plugin-recaptcha": "^3.6.6",
     "puppeteer-extra-plugin-session": "^1.0.1",
     "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "sqlite3": "^5.1.4",
+    "user-agents": "^1.0.1295",
     "winston": "^3.8.2"
   }
 }

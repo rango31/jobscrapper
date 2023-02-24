@@ -3,6 +3,19 @@
 const UserAgent = require('user-agents');
 const crypto = require('crypto');
 const moment = require('moment');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const {
+  MAXTABS,
+  proxyurl,
+  proxyusername,
+  proxypassword,
+  proxyenabled,
+  enabledsites,
+  NODE_ENV,
+} = process.env;
 
 const clean = (phrase) => phrase = phrase.replace(/\n/g, '');
 
@@ -17,6 +30,40 @@ const formatDate = (date, title) => {
 
   return moment(date, format).format('YYYY-MM-DD');
 };
+
+const isEnabled = async (site) => {
+
+  if (enabledsites.indexOf(site) !== -1) {
+    return true;
+  }
+  
+  return false;
+};
+
+getEmails = (text) => {
+  try{
+  var emailReg = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
+  let emails = text.match(emailReg)?.map(function(s){
+    return s.trim();
+  });
+  return emails;
+}catch(ex){
+  return [];
+}
+}
+
+getPhoneNumbers = (text) => {
+  try{
+  var phoneReg = /(?:[-+() ]*\d){10,13}/gm; 
+  const res = text.match(phoneReg)?.map(function(s){
+    return s.trim();
+  });
+
+  return res;
+}catch(ex){
+   return [];
+}
+}
 
 const setRandomUserAgent = (page) => {
     const userAgent = new UserAgent();
@@ -78,7 +125,14 @@ const randomstring = (length) => {
     return result;
   };
 
+const getRandomInt = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 module.exports = {
+  getRandomInt,
     clean,
     hash,
     formatDate,
@@ -89,5 +143,8 @@ module.exports = {
     displaydate,
     findAndSolveCaptcha,
     scrollDown,
-    randomstring
+    randomstring,
+    getEmails,
+    getPhoneNumbers,
+    isEnabled
 };
