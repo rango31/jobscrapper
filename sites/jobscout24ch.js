@@ -57,8 +57,8 @@ const scrap = async (site, browser) => {
           publishedDate:await jobDetails.evaluate(() => document.querySelector('div.job-details-top > div.job-details-action-bar > div > span:nth-child(1)').innerText).catch(() => null),
           status:'',
           location:{
-            city: address,
-            address:'',
+            city: '',
+            address,
             country:'',
             zipcode:'',
             state:'',
@@ -69,7 +69,7 @@ const scrap = async (site, browser) => {
           responsibilities:[],
           companyName:await job.evaluate(() => document.querySelector('div.job-details-top > div.company-info > h2 > a').title).catch(() => null),
           companyWorkingHour:'',
-          companyLogo:await jobDetails.evaluate(() => document.querySelector('div.slim_picture > img').src).catch(() => null),
+          companyLogo:await jobDetails.evaluate(() => document.querySelector('div.job-details-bottom div.slim_picture > img').src).catch(() => null),
           jobPostRawHtml:bodyHtml,
         }
         console.log(foundJob);
