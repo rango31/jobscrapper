@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers } = require('../helper');
+const { getEmails, getPhoneNumbers, bulkinsert , getImages } = require('../helper');
 
 const scrap = async (site, browser) => {
 
@@ -38,9 +38,9 @@ const scrap = async (site, browser) => {
         jobDetails = jobDetails[0];
         await page.waitForTimeout(5000);
 
-        const body = await jobDetails.evaluate(() => document.querySelector('div#jobDescriptionText').innerText).catch(() => null);
-        const bodyHtml = await jobDetails.evaluate(() => document.querySelector('div#jobDescriptionText').innerHTML).catch(() => null);
-        const address = await jobDetails.evaluate(() => (document.querySelector('div.jobsearch-CompanyInfoContainer').innerText)).catch(() => null);
+        const body = await jobDetails.evaluate(() => document.querySelector('article.job-details > div.job-details-bottom').innerText).catch(() => null);
+        const bodyHtml = await jobDetails.evaluate(() => document.querySelector('article.job-details > div.job-details-bottom').innerHTML).catch(() => null);
+        const address = await jobDetails.evaluate(() => (document.querySelector('div.job-details-bottom address > p').innerText)).catch(() => null);
        
         const foundJob = {
           source:'jobscout24.ch',
@@ -51,30 +51,33 @@ const scrap = async (site, browser) => {
           salary:'',
           position:'',
           positionType:'',
-          images:'',
-          jobId:await job.evaluate(() => document.querySelector('h2 > a').id).catch(() => null),
+          images: await getImages(jobDetails),
+          jobId:await job.evaluate(() => document.querySelector('section.main-right article.job-details').getAttribute('data-job-id')).catch(() => null),
           benefits:'',
-          publishedDate:'',
+          publishedDate:await jobDetails.evaluate(() => document.querySelector('div.job-details-top > div.job-details-action-bar > div > span:nth-child(1)').innerText).catch(() => null),
           status:'',
           location:{
             city: address,
             address:'',
             country:'',
             zipcode:'',
-            state:address,
-            raw:await jobDetails.evaluate(() => (document.querySelector('div.jobsearch-CompanyInfoContainer')).innerHTML).catch(() => null)
+            state:'',
+            raw:await jobDetails.evaluate(() => (document.querySelector('div.job-details-bottom address > p')).innerHTML).catch(() => null)
           },
           phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
           replyEmail: getEmails(body) ? getEmails(body) : [],
           responsibilities:'',
-          companyName:await job.evaluate(() => document.querySelector('span.companyName').innerText).catch(() => null),
+          companyName:await job.evaluate(() => document.querySelector('div.job-details-top > div.company-info > h2 > a').title).catch(() => null),
           companyWorkingHour:'',
-          companyLogo:await jobDetails.evaluate(() => document.querySelector('img').src).catch(() => null),
+          companyLogo:await jobDetails.evaluate(() => document.querySelector('div.slim_picture > img').src).catch(() => null),
           jobPostRawHtml:bodyHtml,
         }
         console.log(foundJob);
+        
 
         await batch.push(foundJob);
+
+        await bulkinsert('jobs',batch);
       }
 
       //savetodb
@@ -95,9 +98,7 @@ const scrap = async (site, browser) => {
       }
   }
 
-
-
-
+    
     console.log(foundjobs);
    
 };

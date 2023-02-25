@@ -6,6 +6,7 @@ const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha');
 const { DEFAULT_INTERCEPT_RESOLUTION_PRIORITY } = require('puppeteer');
 
 const { getJobs } = require('./scrapper');
+const { exportToJson } = require('./helper');
 
 const pluginStealth = PluginStealth();
 pluginStealth.enabledEvasions.delete('accept-language');
@@ -24,8 +25,21 @@ puppeteer.use(
     visualFeedback: true,
   }),
 );
-console.log('running');
 
-getJobs(puppeteer)
+const knexConfig = require('./knexfile');
+const knex = require('knex')(knexConfig['production'])
+global.knex = knex;
+
+knex.migrate.latest()
+.then(async () => {
+    console.log("Migrations applied. Running scripts .....");
+    await getJobs(puppeteer);
+    await exportToJson();
+}).catch((e)=>{
+    console.log(e);
+    process.exit();
+});
+
+
 
 

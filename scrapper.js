@@ -31,13 +31,13 @@ async function getJobs(puppeteer){
   });
 
   const sites = [
-  'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs',
+  //'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs',
   'https://www.jobscout24.ch/de/jobs/arzt/',
-  'https://www.metajob.at/Arzt/%C3%84rztin',
-  'https://www.praktischarzt.ch/assistenzarzt/?job_category=0&job_location&radius=200/1/s'
+  //'https://www.metajob.at/Arzt/%C3%84rztin',
+  //'https://www.praktischarzt.ch/assistenzarzt/?job_category=0&job_location&radius=200/1/s'
   ]
 
-     await Promise.allSettled(sites.map(async (site) => {
+     const results = await Promise.allSettled(sites.map(async (site) => {
       let output = null;
       switch (true) {
         case (await site.indexOf('www.indeed.ch') !== -1 && await isEnabled('indeed')):
@@ -56,6 +56,12 @@ async function getJobs(puppeteer){
           output = null;
       }
      }))
+
+     console.log(`Jobs ran : ${results.length}`);
+     console.log(`Job statuses:`)
+     for (const result of results) {
+      console.log(result.status, ':' , result.reason);
+     }
 
      await browser.close();
     }

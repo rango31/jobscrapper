@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers } = require('../helper');
+const { getEmails, getPhoneNumbers, bulkinsert } = require('../helper');
 
 const scrap = async (site, browser) => {
   const page = await browser.newPage().catch((error) => {
@@ -31,49 +31,54 @@ const scrap = async (site, browser) => {
       const batch =[];
 
       for (const job of jobs) {
+        try{
+          await job.click('h2.jobTitle');
+          let jobDetails = await page.$$('div.jobsearch-RightPane');//await page.evaluate(() => document.querySelector('div.jobsearch-RightPane')).catch(() => null);
+          jobDetails = jobDetails[0];
+          await page.waitForTimeout(5000);
+
+          const body = await jobDetails.evaluate(() => document.querySelector('div#jobDescriptionText').innerText).catch(() => null);
+          const bodyHtml = await jobDetails.evaluate(() => document.querySelector('div#jobDescriptionText').innerHTML).catch(() => null);
+          const address = await jobDetails.evaluate(() => (document.querySelector('div.jobsearch-CompanyInfoContainer').innerText).split('\n')[2]).catch(() => null);
         
-        await job.click('h2.jobTitle');
-        let jobDetails = await page.$$('div.jobsearch-RightPane');//await page.evaluate(() => document.querySelector('div.jobsearch-RightPane')).catch(() => null);
-        jobDetails = jobDetails[0];
-        await page.waitForTimeout(5000);
+          const foundJob = {
+            source:'indeed.ch',
+            originUrl:await page.url(),
+            title: await job.evaluate(() => document.querySelector('h2.jobTitle').innerText).catch(() => null),
+            body,
+            publishedBy:'',
+            salary:'',
+            position:'',
+            positionType:'',
+            images:'',
+            jobId:await job.evaluate(() => document.querySelector('h2 > a').id).catch(() => null),
+            benefits:'',
+            publishedDate:'',
+            status:'',
+            location:{
+              city: address?.split(',')[0],
+              address:'',
+              country:'',
+              zipcode:'',
+              state:address?.split(',')[1],
+              raw:await jobDetails.evaluate(() => (document.querySelector('div.jobsearch-CompanyInfoContainer').innerHTML)).catch(() => null)
+            },
+            phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
+            replyEmail: getEmails(body) ? getEmails(body) : [],
+            responsibilities:'',
+            companyName:await job.evaluate(() => document.querySelector('span.companyName').innerText).catch(() => null),
+            companyWorkingHour:'',
+            companyLogo:await jobDetails.evaluate(() => document.querySelector('img').src).catch(() => null),
+            jobPostRawHtml:bodyHtml,
+          }
+          console.log(foundJob);
 
-        const body = await jobDetails.evaluate(() => document.querySelector('div#jobDescriptionText').innerText).catch(() => null);
-        const bodyHtml = await jobDetails.evaluate(() => document.querySelector('div#jobDescriptionText').innerHTML).catch(() => null);
-        const address = await jobDetails.evaluate(() => (document.querySelector('div.jobsearch-CompanyInfoContainer').innerText).split('\n')[2]).catch(() => null);
-       
-        const foundJob = {
-          source:'indeed.ch',
-          originUrl:await page.url(),
-          title: await job.evaluate(() => document.querySelector('h2.jobTitle').innerText).catch(() => null),
-          body,
-          publishedBy:'',
-          salary:'',
-          position:'',
-          positionType:'',
-          images:'',
-          jobId:await job.evaluate(() => document.querySelector('h2 > a').id).catch(() => null),
-          benefits:'',
-          publishedDate:'',
-          status:'',
-          location:{
-            city: address.split(',')[0],
-            address:'',
-            country:'',
-            zipcode:'',
-            state:address.split(',')[1],
-            raw:await jobDetails.evaluate(() => (document.querySelector('div.jobsearch-CompanyInfoContainer').innerHTML)).catch(() => null)
-          },
-          phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
-          replyEmail: getEmails(body) ? getEmails(body) : [],
-          responsibilities:'',
-          companyName:await job.evaluate(() => document.querySelector('span.companyName').innerText).catch(() => null),
-          companyWorkingHour:'',
-          companyLogo:await jobDetails.evaluate(() => document.querySelector('img').src).catch(() => null),
-          jobPostRawHtml:bodyHtml,
-        }
-        console.log(foundJob);
-
-        await batch.push(foundJob);
+          await batch.push(foundJob);
+          console.log(batch.length);
+          await bulkinsert('jobs',batch);
+      }catch(ex){
+         console.log(ex)
+      }
       }
 
       //savetodb

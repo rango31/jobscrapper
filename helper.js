@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable import/extensions */
+const fs = require('fs');
 const UserAgent = require('user-agents');
 const crypto = require('crypto');
 const moment = require('moment');
@@ -8,13 +9,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const {
-  MAXTABS,
-  proxyurl,
-  proxyusername,
-  proxypassword,
-  proxyenabled,
   enabledsites,
-  NODE_ENV,
 } = process.env;
 
 const clean = (phrase) => phrase = phrase.replace(/\n/g, '');
@@ -131,8 +126,81 @@ const getRandomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+const ibulkinsert = async (rows, from) => {
+  if (rows.length > 0) {
+    knex.transaction((tr) => knex.batchInsert('jobs', rows, 100)
+      .transacting(tr))
+      .then(() => {
+      //  logger.log({ level: 'info', message: `${displaydate()} ${rows.length} new job(s) saved from ${from}` });
+      })
+      .catch((error) => {
+        console.log(error);
+        //logger.log({ level: 'error', message: `${displaydate()} Database error -  ${error.message}` });
+      });
+  } else {
+    //logger.log({ level: 'info', message: `${displaydate()} No new jobs found on ${from}` });
+  }
+};
+
+function bulkinsertdd(tableName, data) {
+  const firstData = data[0] ? data[0] : data;
+  return knex.raw(knex(tableName).insert(data).toQuery() + " ON DUPLICATE KEY UPDATE " +
+    Object.getOwnPropertyNames(firstData).map((field) => `${field}=VALUES(${field})`).join(", "));
+}
+
+const bulkinsert = async (table, data) => {
+  try{
+  await knex(table)
+  .insert(data)
+  .onConflict([
+    'jobId'
+  ])
+  .merge();
+}catch(ex){
+console.log(ex);
+}
+}
+
+const exportToJson = async () => {
+
+  const jobs = await knex('jobs').catch((ex) => {});
+
+    fs.writeFile('test.json', JSON.stringify(jobs, null, 4), function(err) {
+      if(err) {
+        console.log(err);
+      } 
+  }); 
+}
+
+const getBenefitsList = async (selector, ele) => {
+
+}
+
+const getResponsibilitiesList = async (selector, ele) => {
+  
+}
+
+const getImages = async (smallPage) => {
+console.log('hello');
+try{
+let imagesHandle = await smallPage.$$('img');
+console.log(imagesHandle);
+
+imagesHandle.forEach(img => {
+  console.log(img);
+});
+}catch(ex){
+console.log(ex);
+}
+
+  
+}
+
+//exportToJson();
+
 module.exports = {
-  getRandomInt,
+    bulkinsert,
+    getRandomInt,
     clean,
     hash,
     formatDate,
@@ -146,5 +214,7 @@ module.exports = {
     randomstring,
     getEmails,
     getPhoneNumbers,
-    isEnabled
+    isEnabled,
+    exportToJson,
+    getImages
 };
