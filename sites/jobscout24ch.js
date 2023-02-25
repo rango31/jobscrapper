@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers, bulkinsert , getImages } = require('../helper');
+const { getEmails, getPhoneNumbers, bulkinsert , getImages, clean , getList, getPositionTypes} = require('../helper');
 
 const scrap = async (site, browser) => {
 
@@ -14,7 +14,7 @@ const scrap = async (site, browser) => {
   Fixed term
   */
 
-  const TIMEOUT = 120000;
+  const TIMEOUT = 220000;
 
     await page.setDefaultNavigationTimeout(TIMEOUT);
 
@@ -46,12 +46,12 @@ const scrap = async (site, browser) => {
           source:'jobscout24.ch',
           originUrl:await page.url(),
           title: await jobDetails.evaluate(() => document.querySelector('div.company-info > h2.company-title').innerText).catch(() => null),
-          body,
+          body: clean(body),
           publishedBy:'',
           salary:'',
           position:'',
-          positionType:'',
-          images: await getImages(jobDetails),
+          positionType : await getPositionTypes(await jobDetails.evaluate(() => (document.querySelector('div.job-details-top div.property-tags > span:nth-child(2)').innerText)).catch(() => null)),
+          images: await getImages(page,'article.job-details'),
           jobId:await job.evaluate(() => document.querySelector('section.main-right article.job-details').getAttribute('data-job-id')).catch(() => null),
           benefits:'',
           publishedDate:await jobDetails.evaluate(() => document.querySelector('div.job-details-top > div.job-details-action-bar > div > span:nth-child(1)').innerText).catch(() => null),
@@ -66,7 +66,7 @@ const scrap = async (site, browser) => {
           },
           phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
           replyEmail: getEmails(body) ? getEmails(body) : [],
-          responsibilities:'',
+          responsibilities:[],
           companyName:await job.evaluate(() => document.querySelector('div.job-details-top > div.company-info > h2 > a').title).catch(() => null),
           companyWorkingHour:'',
           companyLogo:await jobDetails.evaluate(() => document.querySelector('div.slim_picture > img').src).catch(() => null),

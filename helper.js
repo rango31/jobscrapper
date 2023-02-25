@@ -172,28 +172,63 @@ const exportToJson = async () => {
   }); 
 }
 
-const getBenefitsList = async (selector, ele) => {
+const getList = async (page, container, elements, type) => {
+
+  const elementsE = await page.evaluate((container, elements, type) => Array.from(document.querySelectorAll(container))
+    .map((review) => ({
+      ele: review.querySelector(elements) ? review.querySelector(elements)[type] : null,
+    })), container, elements, type);
+
+    console.log(elementsE);
+}
+
+const getImages = async (page, smallPage) => {
+  try{
+    const final = [];
+    const images = await page.evaluate((smallPage) => Array.from(document.querySelectorAll(smallPage))
+    .map((review) => ({
+      img: review.querySelector('img') ? review.querySelector('img').src : null,
+    })), smallPage);
+
+    await images.forEach(img => {
+      final.push(img.img);
+    });
+
+    return final
+  }catch(ex){
+    console.log(ex);
+    return [];
+  }
 
 }
 
-const getResponsibilitiesList = async (selector, ele) => {
+const getPositionTypes = async (text) => {
   
-}
+    const types = [];
 
-const getImages = async (smallPage) => {
-console.log('hello');
-try{
-let imagesHandle = await smallPage.$$('img');
-console.log(imagesHandle);
+    try{
+      var percentReg = /\b\d+(?:%|percent\b)/g;
+      let percentages = text.match(percentReg)?.map(function(s){
+        return s.trim();
+      });
 
-imagesHandle.forEach(img => {
-  console.log(img);
-});
-}catch(ex){
-console.log(ex);
-}
+      for (const p of percentages) {
+        let pNumber = p.replace('%','');
+        pNumber = p.replace('percent','');
+        pNumber = await parseFloat(pNumber)
 
-  
+        if(pNumber < 100){
+            types.push('Part-Time')
+        }else if(pNumber === 100){
+          types.push('Full-Time')
+        }
+      }
+
+      return types;
+      
+    }catch(ex){
+      return [];
+    }
 }
 
 //exportToJson();
@@ -216,5 +251,7 @@ module.exports = {
     getPhoneNumbers,
     isEnabled,
     exportToJson,
-    getImages
+    getImages,
+    getPositionTypes,
+    getList
 };

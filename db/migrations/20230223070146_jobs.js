@@ -9,7 +9,7 @@ exports.up = function(knex) {
         table.string('publishedBy');
         table.string('salary');
         table.string('position');
-        table.string('positionType');
+        table.json('positionType');
         table.string('images', 3000);
         table.json('benefits', 3000);
         table.string('publishedDate');

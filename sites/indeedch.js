@@ -45,7 +45,7 @@ const scrap = async (site, browser) => {
             source:'indeed.ch',
             originUrl:await page.url(),
             title: await job.evaluate(() => document.querySelector('h2.jobTitle').innerText).catch(() => null),
-            body,
+            body: clean(body),
             publishedBy:'',
             salary:'',
             position:'',
