@@ -31,10 +31,10 @@ async function getJobs(puppeteer){
   });
 
   const sites = [
-  //'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs',
+  'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs?sort=date&',
   'https://www.jobscout24.ch/de/jobs/arzt/',
   //'https://www.metajob.at/Arzt/%C3%84rztin',
-  //'https://www.praktischarzt.ch/assistenzarzt/?job_category=0&job_location&radius=200/1/s'
+  'https://www.praktischarzt.ch/assistenzarzt/?job_category=0&job_location&radius=200/1/'
   ]
 
      const results = await Promise.allSettled(sites.map(async (site) => {

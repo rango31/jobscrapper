@@ -41,6 +41,9 @@ getEmails = (text) => {
   let emails = text.match(emailReg)?.map(function(s){
     return s.trim();
   });
+
+  emails = [...new Set(emails)];
+
   return emails;
 }catch(ex){
   return [];
@@ -53,6 +56,8 @@ getPhoneNumbers = (text) => {
   const res = text.match(phoneReg)?.map(function(s){
     return s.trim();
   });
+
+  res = [...new Set(res)];
 
   return res;
 }catch(ex){
@@ -109,7 +114,7 @@ async function scrollDown(page, ele) {
     }).catch((ex) => {});
   }
 
-const randomstring = (length) => {
+const randomString = (length) => {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
@@ -202,14 +207,20 @@ const getPositionTypes = async (text) => {
         }
       }
 
+      if(text.toLowerCase().contains('part')){
+        types.push('Part-Time')
+      }else if(text.toLowerCase().contains('fixed') && text.toLowerCase().contains('term') ){
+        types.push('Fixed-Term');
+      }
+
+      types = [...new Set(types)];
+
       return types;
       
     }catch(ex){
       return [];
     }
 }
-
-//exportToJson();
 
 module.exports = {
     bulkinsert,
@@ -224,7 +235,7 @@ module.exports = {
     displaydate,
     findAndSolveCaptcha,
     scrollDown,
-    randomstring,
+    randomString,
     getEmails,
     getPhoneNumbers,
     isEnabled,

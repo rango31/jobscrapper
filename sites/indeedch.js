@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers, bulkinsert } = require('../helper');
+const { getEmails, getPhoneNumbers, bulkinsert, getPositionTypes, getImages, getList, clean } = require('../helper');
 
 const scrap = async (site, browser) => {
   const page = await browser.newPage().catch((error) => {
@@ -6,33 +6,23 @@ const scrap = async (site, browser) => {
     return false;
   });
 
-  /*
-  job types 
-  100%
-  Part-time
-  Fixed term
-  */
-
   const TIMEOUT = 120000;
-
-    await page.setDefaultNavigationTimeout(TIMEOUT);
-
-    await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
-    await page.waitForTimeout(5000);
-
-    await page.click('button#onetrust-accept-btn-handler');
-
-    //paginate
+  await page.setDefaultNavigationTimeout(TIMEOUT);
+  await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
+  await page.waitForTimeout(5000);
+  await page.click('button#onetrust-accept-btn-handler');
 
    let lastpage = false;
     
    while(!lastpage){
-      const jobs = await page.$$('ul.jobsearch-ResultsList > li');
+      const jobs = await page.$$('ul.jobsearch-ResultsList > li div.job_seen_beacon');
       const batch =[];
 
       for (const job of jobs) {
         try{
-          await job.click('h2.jobTitle');
+          await job.click('h2.jobTitle').catch(()=> {
+            console.log('---');
+          });
           let jobDetails = await page.$$('div.jobsearch-RightPane');//await page.evaluate(() => document.querySelector('div.jobsearch-RightPane')).catch(() => null);
           jobDetails = jobDetails[0];
           await page.waitForTimeout(5000);
@@ -49,8 +39,8 @@ const scrap = async (site, browser) => {
             publishedBy:'',
             salary:'',
             position:'',
-            positionType:'',
-            images:'',
+            positionType:await getPositionTypes(await jobDetails.evaluate(() => (document.querySelector('div#salaryInfoAndJobType').innerText)).catch(() => null)),
+            images:await getImages(page,'div.jobsearch-RightPane'),
             jobId:await job.evaluate(() => document.querySelector('h2 > a').id).catch(() => null),
             benefits:'',
             publishedDate:'',
@@ -71,10 +61,9 @@ const scrap = async (site, browser) => {
             companyLogo:await jobDetails.evaluate(() => document.querySelector('img').src).catch(() => null),
             jobPostRawHtml:bodyHtml,
           }
-          console.log(foundJob);
+          console.log(foundJob.jobId);
 
           await batch.push(foundJob);
-          console.log(batch.length);
           await bulkinsert('jobs',batch);
       }catch(ex){
          console.log(ex)
@@ -99,7 +88,7 @@ const scrap = async (site, browser) => {
       }
   }
 
-    console.log(foundjobs);
+    //console.log(address);
     return foundjobs;
    
 };
