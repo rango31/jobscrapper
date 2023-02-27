@@ -32,7 +32,7 @@ global.knex = knex;
 
 knex.migrate.latest()
 .then(async () => {
-    console.log("Migrations applied. Running scripts .....");
+    console.log("Getting jobs .....");
     await getJobs(puppeteer);
     await exportToJson();
 }).catch((e)=>{

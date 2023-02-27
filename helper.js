@@ -12,7 +12,7 @@ const {
   enabledsites,
 } = process.env;
 
-const clean = (phrase) => phrase = phrase.replace(/\n/g, '');
+const clean = (phrase) => phrase = phrase?.replace(/\n/g, '');
 
 const hash = (data) => crypto.createHash('sha256').update(data).digest('base64');
 
