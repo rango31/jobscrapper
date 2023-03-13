@@ -76,6 +76,8 @@ const scrap = async (site, browser) => {
       lastpage = true;
     }
   }
+
+  return true;
    
 };
 

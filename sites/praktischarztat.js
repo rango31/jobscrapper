@@ -29,7 +29,7 @@ const scrap = async (site, browser) => {
     }
   
     for (let index = 1; index < pageCount - 1; index++) {
-      await page.goto(`https://www.praktischarzt.ch/${word}/?job_category=0&job_location&radius=200/${index}/`, { waitUntil: 'load', timeout: TIMEOUT });
+      await page.goto(`https://www.praktischarzt.at/${word}/?job_category=0&job_location&radius=200/${index}/`, { waitUntil: 'load', timeout: TIMEOUT });
       await page.waitForTimeout(2000);
   
      const links = await page.evaluate(() => Array.from(document.querySelectorAll(`div.box-job`))
@@ -70,7 +70,7 @@ const getPageData = async (page, id) => {
   const address = await jobDetails.evaluate(() => (document.querySelector('input[name="jobFullLocation"]').value)).catch(() => null);
  
   const foundJob = {
-    source:'praktischarzt.ch',
+    source:'praktischarzt.at',
     originUrl:await page.url(),
     title: await jobDetails.evaluate(() => document.querySelector('h1#job_title').innerText).catch(() => null),
     body:await clean(body),

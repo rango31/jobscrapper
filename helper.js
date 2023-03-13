@@ -78,11 +78,11 @@ const getValidJobs = async (jobs, site) => {
   
     return validreviews;
   };
-
+//zproxy.lum-superproxy.io:22225
 const authenticateproxy = async (page) => {
     await page.authenticate({
-      username: ``,
-      password: ``,
+      username: `brd-customer-hl_ea11ce35-zone-zone2`,
+      password: `wbrd84r6jt61`,
     });
   };
 

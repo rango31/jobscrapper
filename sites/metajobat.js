@@ -36,14 +36,14 @@ const scrap = async (site, browser) => {
       try{
       await next.click();
       }catch(ex){
-        console.log(ex)
-        page.waitForTimeout(60000)
         lastpage = true;
       }
     }else{
       lastpage = true;
     }
 }
+
+return true;
   
 
 }
@@ -66,7 +66,7 @@ const getPageData = async (page) => {
     position:'',
     positionType:await getPositionTypes(clean(body)),
     images:await getImages(page,'div.resultVP'),
-    jobId:await page.evaluate(() => document.querySelector('h2 > a').id).catch(() => null),
+    jobId:await page.url(),
     benefits:'',
     publishedDate:'',
     status:'',

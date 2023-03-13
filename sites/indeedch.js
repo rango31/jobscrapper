@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers, bulkinsert, getPositionTypes, getImages, getList, clean } = require('../helper');
+const { getEmails, getPhoneNumbers, bulkinsert, getPositionTypes, getImages, getList, clean, authenticateproxy } = require('../helper');
 
 const scrap = async (site, browser) => {
   const page = await browser.newPage().catch((error) => {
@@ -8,8 +8,9 @@ const scrap = async (site, browser) => {
 
   const TIMEOUT = 120000;
   await page.setDefaultNavigationTimeout(TIMEOUT);
-  await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
-  await page.waitForTimeout(5000);
+  await authenticateproxy(page);
+  await page.goto('https://www.pj-ranking.de/review/read', { waitUntil: 'load', timeout: TIMEOUT });
+  await page.waitForTimeout(500000);
   await page.click('button#onetrust-accept-btn-handler');
 
    let lastpage = false;
@@ -88,8 +89,7 @@ const scrap = async (site, browser) => {
       }
   }
 
-    //console.log(address);
-    return foundjobs;
+  return true;
    
 };
 

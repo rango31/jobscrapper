@@ -14,11 +14,11 @@ const scrap = async (site, browser) => {
   await page.setDefaultNavigationTimeout(TIMEOUT);
 
   for (const word of keyWords) {
-
     site = `https://www.praktischarzt.de/${word}/?job_category=0&job_location&radius=200/1/`
 
     await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
     await page.waitForTimeout(5000);
+
     await page.click('button#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll').catch(()=>{});
   
     const len  = await page.evaluate(() => document.querySelectorAll('a.page-numbers:not(.next)').length ).catch(() => null);
@@ -29,7 +29,7 @@ const scrap = async (site, browser) => {
     }
   
     for (let index = 1; index < pageCount - 1; index++) {
-      await page.goto(`https://www.praktischarzt.ch/${word}/?job_category=0&job_location&radius=200/${index}/`, { waitUntil: 'load', timeout: TIMEOUT });
+      await page.goto(`https://www.praktischarzt.de/${word}/?job_category=0&job_location&radius=200/${index}/`, { waitUntil: 'load', timeout: TIMEOUT });
       await page.waitForTimeout(2000);
   
      const links = await page.evaluate(() => Array.from(document.querySelectorAll(`div.box-job`))
@@ -48,9 +48,12 @@ const scrap = async (site, browser) => {
         await page.waitForTimeout(2000);
         const jobResult = await getPageData(page, id);
         await result.push(jobResult);
-        await bulkinsert('jobs',result);
-        await exportToJson();
+        
       }
+
+      //save jobs found on this page and export to jsonfile
+      await bulkinsert('jobs',result);
+      await exportToJson();
   
     }
     
@@ -70,7 +73,7 @@ const getPageData = async (page, id) => {
   const address = await jobDetails.evaluate(() => (document.querySelector('input[name="jobFullLocation"]').value)).catch(() => null);
  
   const foundJob = {
-    source:'praktischarzt.ch',
+    source:'praktischarzt.de',
     originUrl:await page.url(),
     title: await jobDetails.evaluate(() => document.querySelector('h1#job_title').innerText).catch(() => null),
     body:await clean(body),

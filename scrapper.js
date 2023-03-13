@@ -3,7 +3,9 @@ const dotenv = require('dotenv');
 
 const indeed = require('./sites/indeedch');
 const jobscout24 = require('./sites/jobscout24ch');
-const praktischarzt = require('./sites/praktischarztch');
+const praktischarztch = require('./sites/praktischarztch');
+const praktischarztat = require('./sites/praktischarztat');
+const praktischarztde = require('./sites/praktischarztde');
 const metajob = require('./sites/metajobat');
 
 const { isEnabled , getRandomInt } = require('./helper');
@@ -31,10 +33,13 @@ async function getJobs(puppeteer){
   });
 
   const sites = [
-  'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs?sort=date&',
-  'https://www.jobscout24.ch/de/jobs/arzt/',
-  'https://www.metajob.at/Arzt/%C3%84rztin',
-  'https://www.praktischarzt.ch/assistenzarzt/?job_category=0&job_location&radius=200/1/'
+  //'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs?sort=date&',
+  //'https://www.jobscout24.ch/de/jobs/arzt/',
+  //'https://www.metajob.at/Arzt/%C3%84rztin',
+  //'https://www.praktischarzt.ch/',
+  //'https://www.praktischarzt.at/',
+  'https://www.praktischarzt.de/',
+
   ]
 
      const results = await Promise.allSettled(sites.map(async (site) => {
@@ -49,8 +54,14 @@ async function getJobs(puppeteer){
         case (await site.indexOf('www.metajob.at') !== -1 && await isEnabled('metajob')):
           output = await metajob.scrap(site, browser);
           break;
-        case (await site.indexOf('www.praktischarzt.ch') !== -1 && await isEnabled('praktischarzt')):
-          output = await praktischarzt.scrap(site, browser);
+        case (await site.indexOf('www.praktischarzt.ch') !== -1 && await isEnabled('praktischarztch')):
+          output = await praktischarztch.scrap(site, browser);
+          break;
+        case (await site.indexOf('www.praktischarzt.at') !== -1 && await isEnabled('praktischarztat')):
+          output = await praktischarztat.scrap(site, browser);
+          break;
+        case (await site.indexOf('www.praktischarzt.de') !== -1 && await isEnabled('praktischarztde')):
+          output = await praktischarztde.scrap(site, browser);
           break;
         default:
           output = null;
@@ -63,7 +74,7 @@ async function getJobs(puppeteer){
       console.log(result.status, ':' , result.reason);
      }
 
-     await browser.close();
+     //await browser.close();
     }
 
     module.exports = {
