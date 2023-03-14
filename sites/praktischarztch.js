@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers , clean, getImages, getPositionTypes, exportToJson , bulkinsert} = require('../helper');
+const { getEmails, getPhoneNumbers , clean, getImages, getPositionTypes, exportToJson , bulkinsert, getFrame} = require('../helper');
 
 const scrap = async (site, browser) => {
 
@@ -15,7 +15,7 @@ const scrap = async (site, browser) => {
 
   for (const word of keyWords) {
 
-    site = `https://www.praktischarzt.de/${word}/?job_category=0&job_location&radius=200/1/`
+    site = `https://www.praktischarzt.ch/${word}/?job_category=0&job_location&radius=200/1/`
 
     await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
     await page.waitForTimeout(5000);
@@ -36,6 +36,9 @@ const scrap = async (site, browser) => {
      .map((link) => {
        return {
          url: link.querySelector('a.title.title-link:not(.mobile_show)') ? link.querySelector('a.title.title-link:not(.mobile_show)').href : null,
+         logo: link.querySelector('div.logostartseite > a > img') ? link.querySelector('div.logostartseite > a > img').src : null,
+         date: link.querySelector('div.employer-address') ? link.querySelector('div.employer-address').innerText?.slice(0, 10) : null,
+         responsibilities: link.querySelector('div.employer-job-cat') ? link.querySelector('vdiv.employer-job-cat').innerText.split(',') : null,
          id: link.id,
      };
      }));
@@ -43,10 +46,10 @@ const scrap = async (site, browser) => {
       const result = [];
   
       for (const urlObj of links) {
-        const { url , id} = urlObj;
+        const { url , id } = urlObj;
         await page.goto(url, { waitUntil: 'load', timeout: TIMEOUT });
         await page.waitForTimeout(2000);
-        const jobResult = await getPageData(page, id);
+        const jobResult = await getPageData(page, urlObj);
         await result.push(jobResult);
         await bulkinsert('jobs',result);
         await exportToJson();
@@ -60,28 +63,38 @@ const scrap = async (site, browser) => {
 
 };
 
-const getPageData = async (page, id) => {
-  let jobDetails = await page.$$('div#single-job');
-  jobDetails = jobDetails[0];
-  //await page.waitForTimeout(5000);
+const getPageData = async (page, data) => {
 
-  const body = await jobDetails.evaluate(() => document.querySelector('div:nth-child(6)').innerText).catch(() => null);
-  const bodyHtml = await jobDetails.evaluate(() => document.querySelector('div:nth-child(6)').innerHTML).catch(() => null);
+  const { url , id, logo, responsibilities, date } = data;
+  const jobDetails = await page.$('div#single-job');
   const address = await jobDetails.evaluate(() => (document.querySelector('input[name="jobFullLocation"]').value)).catch(() => null);
- 
+
+  const frameHandle = await page.$("iframe[id='calcheight']");
+  let frame;
+
+  try{
+    frame = await frameHandle.contentFrame();
+  }catch(ex){
+    frame = page;
+  }
+
+  let body = await frame.evaluate(() => document.querySelector('body').innerText).catch(() => null);
+  let bodyHtml = await frame.evaluate(() => document.querySelector('body').innerHTML).catch(() => null);
+
+
   const foundJob = {
     source:'praktischarzt.ch',
-    originUrl:await page.url(),
+    originUrl:url,
     title: await jobDetails.evaluate(() => document.querySelector('h1#job_title').innerText).catch(() => null),
     body:await clean(body),
     publishedBy:await page.evaluate(() => document.querySelector('div.company-name').innerText).catch(() => null),
     salary:'',
     position:'',
-    positionType:await getPositionTypes(await jobDetails.evaluate(() => (document.querySelector('div.clock.desktop').innerText)).catch(() => null)),
-    images:await getImages(page,'div#single-job'),
+    positionType:await getPositionTypes(body),
+    images:await getImages(frame,'body'),
     jobId: await id.replace('job-',''),
     benefits:'',
-    publishedDate:'',
+    publishedDate: date, 
     status:'',
     location:{
       city: '',
@@ -89,16 +102,18 @@ const getPageData = async (page, id) => {
       country:'',
       zipcode:'',
       state:'',
-      raw:await jobDetails.evaluate(() => (document.querySelector('input[name="jobFullLocation"]')).innerHTML).catch(() => null)
+      raw:await jobDetails.evaluate(() => (document.querySelector('div.job-local'))?.innerHTML).catch(() => null)
     },
     phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
     replyEmail: getEmails(body) ? getEmails(body) : [],
-    responsibilities:'',
+    responsibilities,
     companyName:await page.evaluate(() => document.querySelector('div.company-name').innerText).catch(() => null),
     companyWorkingHour:'',
-    companyLogo:'',
+    companyLogo:logo,
     jobPostRawHtml:bodyHtml,
   }
+
+  page.waitForTimeout(50000);
   
   return foundJob
 

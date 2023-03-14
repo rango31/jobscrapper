@@ -35,6 +35,16 @@ const isEnabled = async (site) => {
   return false;
 };
 
+function getFrame(page, name) {
+  let frame = page.mainFrame();
+  for (let child of frame.childFrames()) {
+    let ret = strncmp(name, child.id(), name.length);
+    if(ret === true) {
+      return child;
+    }
+  }
+}
+
 getEmails = (text) => {
   try{
   var emailReg = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
@@ -78,11 +88,11 @@ const getValidJobs = async (jobs, site) => {
   
     return validreviews;
   };
-//zproxy.lum-superproxy.io:22225
+  
 const authenticateproxy = async (page) => {
     await page.authenticate({
-      username: `brd-customer-hl_ea11ce35-zone-zone2`,
-      password: `wbrd84r6jt61`,
+      username: ``,
+      password: ``,
     });
   };
 
@@ -211,6 +221,8 @@ const getPositionTypes = async (text) => {
         types.push('Part-Time')
       }else if(text.toLowerCase().contains('fixed') && text.toLowerCase().contains('term') ){
         types.push('Fixed-Term');
+      }else if(text.toLowerCase().contains('full') && text.toLowerCase().contains('time') ){
+        types.push('Full-Time');
       }
 
       types = [...new Set(types)];
@@ -242,5 +254,6 @@ module.exports = {
     exportToJson,
     getImages,
     getPositionTypes,
-    getList
+    getList,
+    getFrame
 };

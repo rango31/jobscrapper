@@ -36,9 +36,9 @@ async function getJobs(puppeteer){
   //'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs?sort=date&',
   //'https://www.jobscout24.ch/de/jobs/arzt/',
   //'https://www.metajob.at/Arzt/%C3%84rztin',
-  //'https://www.praktischarzt.ch/',
+  'https://www.praktischarzt.ch/',
   //'https://www.praktischarzt.at/',
-  'https://www.praktischarzt.de/',
+  //'https://www.praktischarzt.de/',
 
   ]
 
@@ -74,7 +74,7 @@ async function getJobs(puppeteer){
       console.log(result.status, ':' , result.reason);
      }
 
-     //await browser.close();
+     await browser.close();
     }
 
     module.exports = {
