@@ -38,7 +38,7 @@ const scrap = async (site, browser) => {
          url: link.querySelector('a.title.title-link:not(.mobile_show)') ? link.querySelector('a.title.title-link:not(.mobile_show)').href : null,
          logo: link.querySelector('div.logostartseite > a > img') ? link.querySelector('div.logostartseite > a > img').src : null,
          date: link.querySelector('div.employer-address') ? link.querySelector('div.employer-address').innerText?.slice(0, 10) : null,
-         responsibilities: link.querySelector('div.employer-job-cat') ? link.querySelector('vdiv.employer-job-cat').innerText.split(',') : null,
+         responsibilities: link.querySelector('div.employer-job-cat') ? link.querySelector('div.employer-job-cat').innerText.split(',') : null,
          id: link.id,
      };
      }));

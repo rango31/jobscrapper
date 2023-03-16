@@ -9,7 +9,7 @@ const scrap = async (site, browser) => {
   const TIMEOUT = 120000;
   await page.setDefaultNavigationTimeout(TIMEOUT);
   await authenticateproxy(page);
-  await page.goto('https://www.pj-ranking.de/review/read', { waitUntil: 'load', timeout: TIMEOUT });
+  await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
   await page.waitForTimeout(500000);
   await page.click('button#onetrust-accept-btn-handler');
 

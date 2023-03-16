@@ -33,12 +33,12 @@ async function getJobs(puppeteer){
   });
 
   const sites = [
-  //'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs?sort=date&',
-  //'https://www.jobscout24.ch/de/jobs/arzt/',
-  //'https://www.metajob.at/Arzt/%C3%84rztin',
+  'https://www.indeed.ch/Assistenz%C3%A4rztin-Jobs?sort=date&',
+  'https://www.jobscout24.ch/de/jobs/arzt/',
+  'https://www.metajob.at/Arzt/%C3%84rztin',
   'https://www.praktischarzt.ch/',
-  //'https://www.praktischarzt.at/',
-  //'https://www.praktischarzt.de/',
+  'https://www.praktischarzt.at/',
+  'https://www.praktischarzt.de/',
 
   ]
 
