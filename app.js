@@ -35,9 +35,10 @@ knex.migrate.latest()
     console.log("Getting jobs .....");
     await getJobs(puppeteer);
     await exportToJson();
+    process.exit(0);
 }).catch((e)=>{
     console.log(e);
-    process.exit();
+    process.exit(1);
 });
 
 

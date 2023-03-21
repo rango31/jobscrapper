@@ -75,6 +75,21 @@ getPhoneNumbers = (text) => {
 }
 }
 
+getMoney = (text) => {
+  try{
+  var moneyReg = /\d+(?:\.\d{2})?(?:€|[$])/gm
+  const res = text.match(moneyReg)?.map(function(s){
+    return s.trim();
+  });
+
+  res = [...new Set(res)];
+
+  return res;
+}catch(ex){
+   return [];
+}
+}
+
 const setRandomUserAgent = (page) => {
     const userAgent = new UserAgent();
     page.setUserAgent(userAgent.data.userAgent);
@@ -158,11 +173,34 @@ const exportToJson = async () => {
 
   const jobs = await knex('jobs').catch((ex) => {});
 
-    fs.writeFile('data.json', JSON.stringify(jobs, null, 4), function(err) {
+    fs.writeFile('jobs.json', JSON.stringify(jobs, null, 4), function(err) {
       if(err) {
         console.log(err);
       } 
   }); 
+}
+
+const exportReviews  = async () => {
+  const reviews = await knex('reviews').catch((ex) => {});
+
+  fs.writeFile('reviews.json', JSON.stringify(reviews, null, 4), function(err) {
+    if(err) {
+      console.log(err);
+    } 
+}); 
+}
+
+const saveReviews  = async (table, data) => {
+  try{
+      await knex(table)
+      .insert(data)
+      .onConflict([
+        'reviewId'
+      ])
+      .merge();
+  }catch(ex){
+     console.log(ex);
+  }
 }
 
 const getList = async (page, container, elements, type) => {
@@ -255,5 +293,8 @@ module.exports = {
     getImages,
     getPositionTypes,
     getList,
-    getFrame
+    getFrame,
+    exportReviews,
+    saveReviews,
+    getMoney
 };

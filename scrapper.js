@@ -7,6 +7,7 @@ const praktischarztch = require('./sites/praktischarztch');
 const praktischarztat = require('./sites/praktischarztat');
 const praktischarztde = require('./sites/praktischarztde');
 const metajob = require('./sites/metajobat');
+const pjrankingde = require('./sites/pjrankingde');
 
 const { isEnabled , getRandomInt } = require('./helper');
 
@@ -39,6 +40,7 @@ async function getJobs(puppeteer){
   'https://www.praktischarzt.ch/',
   'https://www.praktischarzt.at/',
   'https://www.praktischarzt.de/',
+  'https://www.pj-ranking.de/',
 
   ]
 
@@ -62,6 +64,9 @@ async function getJobs(puppeteer){
           break;
         case (await site.indexOf('www.praktischarzt.de') !== -1 && await isEnabled('praktischarztde')):
           output = await praktischarztde.scrap(site, browser);
+          break;
+        case (await site.indexOf('www.pj-ranking.de') !== -1 && await isEnabled('pj-rankingde')):
+          output = await pjrankingde.scrap(site, browser);
           break;
         default:
           output = null;
