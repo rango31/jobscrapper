@@ -5,6 +5,7 @@ const UserAgent = require('user-agents');
 const crypto = require('crypto');
 const moment = require('moment');
 const dotenv = require('dotenv');
+const tr = require('timeago-reverse');
 
 dotenv.config();
 
@@ -43,6 +44,12 @@ function getFrame(page, name) {
       return child;
     }
   }
+}
+
+const reverseTimeAgo = (text) => {
+  const myDate = tr.parse(text);
+  const d =  moment(myDate).format('DD/MM/YYYY');
+  return d;
 }
 
 getEmails = (text) => {
@@ -235,42 +242,81 @@ const getImages = async (page, smallPage) => {
 
 const getPositionTypes = async (text) => {
   
-    const types = [];
+    let types = [];
 
     try{
-      var percentReg = /\b\d+(?:%|percent\b)/g;
-      let percentages = text.match(percentReg)?.map(function(s){
+        var percentReg = /\b\d+\s?(?:%|percent\b)/g;
+        let percentages = await text.match(percentReg)?.map(function(s){
+          return s.trim();
+        });
+
+        for (const p of percentages) {
+          let pNumber = p.replace('%','');
+          pNumber = p.replace('percent','');
+          pNumber = await parseFloat(pNumber)
+
+          if(pNumber < 100){
+            types.push('Part-Time')
+          }else if(pNumber === 100){
+            types.push('Full-Time')
+          }
+
+        }
+    }catch(ex){
+      types = [];
+    }
+
+    try{
+      var percentReg2 = /\d\s?\d.*-.*10\s?\d\s?%/gm;
+      let percentages2 = await text.match(percentReg2)?.map(function(s){
         return s.trim();
       });
 
-      for (const p of percentages) {
-        let pNumber = p.replace('%','');
-        pNumber = p.replace('percent','');
-        pNumber = await parseFloat(pNumber)
-
-        if(pNumber < 100){
-            types.push('Part-Time')
-        }else if(pNumber === 100){
+      if(percentages2){
+        if(percentages2[0].includes('100%')){
           types.push('Full-Time')
+          types.push('Part-Time')
+        }else{
+          types.push('Part-Time')
         }
       }
 
-      if(text.toLowerCase().contains('part')){
+  }catch(ex){
+    types = [];
+  }
+
+    text = await text.toLowerCase();
+
+      if(text.includes('parttime') || text.includes('part-time' || text.includes('part time'))){
         types.push('Part-Time')
-      }else if(text.toLowerCase().contains('fixed') && text.toLowerCase().contains('term') ){
-        types.push('Fixed-Term');
-      }else if(text.toLowerCase().contains('full') && text.toLowerCase().contains('time') ){
-        types.push('Full-Time');
+      }else if(text.includes('fulltime') || text.includes('full-time' || text.includes('full time'))){
+        types.push('Full-Time')
+      }else if(text.includes('fixedterm') || text.includes('fixed-term' || text.includes('fixed term'))){
+        types.push('Fixed-Term')
       }
 
       types = [...new Set(types)];
 
       return types;
-      
-    }catch(ex){
-      return [];
-    }
 }
+
+const shuffle = async (array) => {
+  let currentIndex = array.length;
+  let randomIndex;
+
+  // While there remain elements to shuffle...
+  while (currentIndex !== 0) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+};
 
 module.exports = {
     bulkinsert,
@@ -296,5 +342,7 @@ module.exports = {
     getFrame,
     exportReviews,
     saveReviews,
-    getMoney
+    getMoney,
+    shuffle,
+    reverseTimeAgo
 };

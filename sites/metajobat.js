@@ -22,7 +22,7 @@ const scrap = async (site, browser) => {
   let lastpage = false;
     
   while(!lastpage){
-
+    console.log(`Started scrapping new Metajob page`);
     const result = [];
     const res = await getPageData(page);
     await result.push(res);
@@ -43,9 +43,15 @@ const scrap = async (site, browser) => {
     }
 }
 
+console.log(`Completed scrapping Metajob`);
 return true;
   
 
+}
+
+const getId = (url) => {
+  const id = url.replace('https://www.metajob.at/dres/jc?p=','');
+  return id
 }
 
 const getPageData = async (page) => {
@@ -64,26 +70,26 @@ const getPageData = async (page) => {
     publishedBy:'',
     salary:await jobDetails.evaluate(() => document.querySelector('div.job-salary').innerText).catch(() => null),
     position:'',
-    positionType:await getPositionTypes(clean(body)),
-    images:await getImages(page,'div.resultVP'),
-    jobId:await page.url(),
+    positionType:await JSON.stringify(await getPositionTypes(clean(body) + await jobDetails.evaluate(() => document.querySelector('h2.jdet-title').innerText).catch(() => null))),
+    images:'[]',
+    jobId:await getId(await jobDetails.evaluate(() => document.querySelector('h2.jdet-title > a').href).catch(() => null)),
     benefits:'',
-    publishedDate:'',
+    publishedDate:await page.evaluate(() => document.querySelector('div.jdet-source tbody > tr:nth-child(3) > td:nth-child(2)').innerText).catch(() => null),
     status:'',
-    location:{
+    location:await JSON.stringify({
       city: address,
       address:'',
       country:'',
       zipcode:'',
       state:'',
       raw:await jobDetails.evaluate(() => (document.querySelector('div.job-loc')).innerHTML).catch(() => null)
-    },
-    phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
-    replyEmail: getEmails(body) ? getEmails(body) : [],
+    }),
+    phoneNumber: await JSON.stringify( await getPhoneNumbers(body) ? await getPhoneNumbers(body) : []),
+    replyEmail: await JSON.stringify( await getEmails(body) ? await getEmails(body) : []),
     responsibilities:'',
     companyName:await page.evaluate(() => document.querySelector('span.resultDom').innerText).catch(() => null),
     companyWorkingHour:'',
-    companyLogo:await jobDetails.evaluate(() => document.querySelector('img').src).catch(() => null),
+    companyLogo: clean(await page.evaluate(el => window.getComputedStyle(el).backgroundImage, await page.$('div.resultVP div.jdet-jobhead0 > div.jdet-logo'))).match(/url\("(.*)"/)[1],
     jobPostRawHtml:bodyHtml,
   }
   

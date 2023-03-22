@@ -1,4 +1,4 @@
-const { clean, exportReviews , saveReviews} = require('../helper');
+const { clean, exportReviews , saveReviews, shuffle} = require('../helper');
 
 const scrap = async (site, browser) => {
 
@@ -16,10 +16,12 @@ const scrap = async (site, browser) => {
   const TIMEOUT = 120000;
 
   await page.setDefaultNavigationTimeout(TIMEOUT);
+  
 
-  for (const country of countries) {
-
+  for (const country of await shuffle(countries)) {
+    
     const { name, url }  = country;
+    console.log(`Started scrapping pj-ranking for ${name}`);
 
     await page.goto(url, { waitUntil: 'load', timeout: TIMEOUT });
     await page.waitForTimeout(5000);
@@ -32,11 +34,25 @@ const scrap = async (site, browser) => {
     }
   
     for (let index = 1; index < pageCount - 1; index++) {
+      console.log(`Started scrapping pj-ranking page ${index}`);
       await page.goto(`${url}${index}`, { waitUntil: 'load', timeout: TIMEOUT });
       await page.waitForTimeout(2000);
   
-     const links = await page.evaluate(() => Array.from(document.querySelectorAll(`table#review_list > tbody > tr`))
+     let links = await page.evaluate(() => Array.from(document.querySelectorAll(`table#review_list > tbody > tr`))
       .map((link) => {
+
+         const validtime = () => {
+            const orgTime = link.querySelector('td.date > a')?.innerText;
+            let time = orgTime.split('-')[0];
+            time = time.split('/')[1];
+
+            if(parseInt(time)> 18 ){
+              return orgTime
+            }else {
+              return null
+            }
+          }
+
           return {
             url: link.querySelector('td.city > a')?.href ,
             city: link.querySelector('td.city > a')?.innerText,
@@ -44,21 +60,25 @@ const scrap = async (site, browser) => {
             hospital: link.querySelector('td.hospital > a')?.innerText,
             salary: '',
             reviewScore: link.querySelector('td.avg_good > a')?.innerText,
-            timePeriod: link.querySelector('td.date > a')?.innerText,
+            timePeriod: validtime(),
         };
       }));
-  
+
+      links = await links.filter((link)=> { return link.timePeriod !== null });
+
       const result = [];
   
-      for (const urlObj of links) {
+      for (const urlObj of await shuffle(links)) {
         const { url , id } = urlObj;
         await page.goto(url, { waitUntil: 'load', timeout: TIMEOUT });
         await page.waitForTimeout(2000);
         const reviewResult = await getPageData(page, urlObj, name);
         await result.push(reviewResult);
-        await saveReviews('reviews',result)
-        await exportReviews();
       }
+
+      await saveReviews('reviews',result)
+      await exportReviews();
+      console.log(`${result.length}, Reviews saved from PJ-ranking`);
   
     }
     
@@ -69,6 +89,7 @@ const scrap = async (site, browser) => {
 };
 
 const getPageData = async (page, data, country) => {
+  console.log(`Getting page review for pj-ranking review ${await page.url().split('/')[5]}`);
 
   const { city, departmentName, hospital, reviewScore, timePeriod } = data;
 

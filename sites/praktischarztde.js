@@ -38,7 +38,7 @@ const scrap = async (site, browser) => {
          url: link.querySelector('a.title.title-link:not(.mobile_show)') ? link.querySelector('a.title.title-link:not(.mobile_show)').href : null,
          logo: link.querySelector('div.logostartseite > a > img') ? link.querySelector('div.logostartseite > a > img').src : null,
          date: link.querySelector('div.employer-address') ? link.querySelector('div.employer-address').innerText?.slice(0, 10) : null,
-         responsibilities: link.querySelector('div.employer-job-cat') ? link.querySelector('div.employer-job-cat').innerText.split(',') : null,
+         responsibilities: JSON.stringify(link.querySelector('div.employer-job-cat') ? link.querySelector('div.employer-job-cat').innerText.split(',') : null),
          id: link.id,
      };
      }));
@@ -90,30 +90,28 @@ const getPageData = async (page, data) => {
     publishedBy:await page.evaluate(() => document.querySelector('div.company-name').innerText).catch(() => null),
     salary:'',
     position:'',
-    positionType:await getPositionTypes(body),
-    images:await getImages(frame,'body'),
+    positionType:await JSON.stringify(await getPositionTypes(body)),
+    images:await JSON.stringify(await getImages(frame,'body')),
     jobId: await id.replace('job-',''),
     benefits:'',
     publishedDate: date, 
     status:'',
-    location:{
+    location:await JSON.stringify({
       city: '',
       address,
       country:'',
       zipcode:'',
       state:'',
       raw:await jobDetails.evaluate(() => (document.querySelector('div.job-local'))?.innerHTML).catch(() => null)
-    },
-    phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
-    replyEmail: getEmails(body) ? getEmails(body) : [],
+    }),
+    phoneNumber: await JSON.stringify(getPhoneNumbers(body) ? getPhoneNumbers(body) : []),
+    replyEmail: await JSON.stringify(getEmails(body) ? getEmails(body) : []),
     responsibilities,
     companyName:await page.evaluate(() => document.querySelector('div.company-name').innerText).catch(() => null),
     companyWorkingHour:'',
     companyLogo:logo,
     jobPostRawHtml:bodyHtml,
   }
-
-  page.waitForTimeout(50000);
   
   return foundJob
 

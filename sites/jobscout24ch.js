@@ -1,4 +1,4 @@
-const { getEmails, getPhoneNumbers, bulkinsert , getImages, clean , getList, getPositionTypes} = require('../helper');
+const { getEmails, getPhoneNumbers, bulkinsert , getImages, clean , getList, getPositionTypes, exportToJson} = require('../helper');
 
 const scrap = async (site, browser) => {
 
@@ -7,11 +7,20 @@ const scrap = async (site, browser) => {
   await page.setDefaultNavigationTimeout(TIMEOUT);
   await page.goto(site, { waitUntil: 'load', timeout: TIMEOUT });
   await page.waitForTimeout(1000);
-  await page.click('div#cookie-consent-overview div.modal-footer > button.cookie-accept-all.orange');
+  await page.click('div#cookie-consent-overview div.modal-footer > button.cookie-accept-all.orange').catch(()=>{});
 
-  let lastpage = false;
-    
-  while(!lastpage){
+  // const pageCount  = await page.evaluate(() => document.querySelectorAll('div.pages > ul > li:nth-child(2)')[0].innerText).catch(() => null);
+  const pageCount = await page.evaluate(() => (document.querySelector('div.pages > ul > li:nth-child(1)').innerText.split('/')[1])).catch(() => null);
+
+  if(!pageCount){
+    return;
+  }
+
+  for (let index = 1; index < parseInt(pageCount) - 1; index++) {
+    console.log(`Started scrapping jobscout page ${index}`);
+    await page.goto(`https://www.jobscout24.ch/de/jobs/arzt/s?p=${index}`, { waitUntil: 'load', timeout: TIMEOUT });
+    await page.waitForTimeout(2000);
+
     const jobs = await page.$$('div.jobs-list > ul > li.job-list-item');
     const batch =[];
 
@@ -34,49 +43,37 @@ const scrap = async (site, browser) => {
         publishedBy:'',
         salary:'',
         position:'',
-        positionType : await getPositionTypes(await jobDetails.evaluate(() => (document.querySelector('div.job-details-top div.property-tags > span:nth-child(2)').innerText)).catch(() => null)),
-        images: await getImages(page,'article.job-details'),
+        positionType : await JSON.stringify( await getPositionTypes(await jobDetails.evaluate(() => (document.querySelector('div.job-details-top div.property-tags > span:nth-child(2)').innerText)).catch(() => null))),
+        images: await JSON.stringify( await getImages(page,'article.job-details')),
         jobId:await job.evaluate(() => document.querySelector('section.main-right article.job-details').getAttribute('data-job-id')).catch(() => null),
         benefits:'',
         publishedDate:await jobDetails.evaluate(() => document.querySelector('div.job-details-top > div.job-details-action-bar > div > span:nth-child(1)').innerText).catch(() => null),
         status:'',
-        location:{
+        location: await JSON.stringify({
           city: '',
           address,
           country:'',
           zipcode:'',
           state:'',
           raw:await jobDetails.evaluate(() => (document.querySelector('div.job-details-bottom address > p')).innerHTML).catch(() => null)
-        },
-        phoneNumber: getPhoneNumbers(body) ? getPhoneNumbers(body) : [],
-        replyEmail: getEmails(body) ? getEmails(body) : [],
-        responsibilities:[],
+        }),
+        phoneNumber: await JSON.stringify( await getPhoneNumbers(body) ? await getPhoneNumbers(body) : []),
+        replyEmail: await JSON.stringify( await getEmails(body) ? await getEmails(body) : []),
+        responsibilities:'[]',
         companyName:await job.evaluate(() => document.querySelector('div.job-details-top > div.company-info > h2 > a').title).catch(() => null),
         companyWorkingHour:'',
         companyLogo:await jobDetails.evaluate(() => document.querySelector('div.job-details-bottom div.slim_picture > img').src).catch(() => null),
         jobPostRawHtml:bodyHtml,
       }
-      console.log(foundJob);
 
       await batch.push(foundJob);
-      await bulkinsert('jobs',batch);
+      
     }
 
-    await page.waitForTimeout(2000);
-    let next = await page.$$('div.pages a');
-
-    if(next){
-      try{
-        next = next[0];
-        await next.click();
-      }catch(ex){
-        lastpage = true;
-      }
-    }else{
-      lastpage = true;
-    }
+    await bulkinsert('jobs',batch);
+    await exportToJson();
   }
-
+    
   return true;
    
 };
