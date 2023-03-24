@@ -1,6 +1,7 @@
 const { getEmails, getPhoneNumbers, bulkinsert, getPositionTypes, getImages, getList, clean, authenticateproxy, exportToJson, reverseTimeAgo } = require('../helper');
 
 const scrap = async (site, browser) => {
+  console.log(`Started scrapping Indeed`);
   const page = await browser.newPage().catch((error) => {
     logger.log({ level: 'error', message: `${_misc.displaydate()} Failed to open page : ${error}` });
     return false;
@@ -16,6 +17,7 @@ const scrap = async (site, browser) => {
   let enabled = true;
   let links = [];
 
+  console.log(`Getting indeed job links...`);
   while(enabled){
 
     const newlinks = await page.evaluate(() => Array.from(document.querySelectorAll(`ul.jobsearch-ResultsList > li div.job_seen_beacon`))
@@ -34,22 +36,24 @@ const scrap = async (site, browser) => {
 
     await page.waitForTimeout(3000);
   }
+  console.log(`Got all indeed job links..., getting job`);
  
   const result = [];
  
   for (const urlObj of links) {
     const { url , id } = urlObj;
+    console.log(`Getting indeed jobdata from ${url}`);
     await page.goto(url, { waitUntil: 'load', timeout: TIMEOUT });
     await page.waitForTimeout(2000);
     const jobResult = await getPageData(page, urlObj);
     await result.push(jobResult);
-
     await bulkinsert('jobs',result);
-    await exportToJson();
-  
   }
 
- 
+  console.log(`Completed scrapping Indeed, exporting data to JSON.`);
+
+  await exportToJson();
+  await page.close();
 
   return true;
    

@@ -65,15 +65,14 @@ const scrap = async (site, browser) => {
         companyLogo:await jobDetails.evaluate(() => document.querySelector('div.job-details-bottom div.slim_picture > img').src).catch(() => null),
         jobPostRawHtml:bodyHtml,
       }
-
-      await batch.push(foundJob);
-      
+      await batch.push(foundJob); 
     }
 
+    console.log(`Saving jobs found on jobscout page ${index}`);
     await bulkinsert('jobs',batch);
     await exportToJson();
+    await page.close();
   }
-    
   return true;
    
 };

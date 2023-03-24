@@ -29,6 +29,7 @@ const scrap = async (site, browser) => {
     }
   
     for (let index = 1; index < pageCount - 1; index++) {
+      console.log(`Getting joblinks from https://www.praktischarzt.at/${word}/?job_category=0&job_location&radius=200/${index}/`);
       await page.goto(`https://www.praktischarzt.at/${word}/?job_category=0&job_location&radius=200/${index}/`, { waitUntil: 'load', timeout: TIMEOUT });
       await page.waitForTimeout(2000);
   
@@ -49,15 +50,20 @@ const scrap = async (site, browser) => {
         const { url , id } = urlObj;
         await page.goto(url, { waitUntil: 'load', timeout: TIMEOUT });
         await page.waitForTimeout(2000);
+        console.log(`Getting job data from ${url}`);
         const jobResult = await getPageData(page, urlObj);
         await result.push(jobResult);
-        await bulkinsert('jobs',result);
-        await exportToJson();
       }
-  
+
+      console.log(`Saving found data from praktischarzt.at`);
+      await bulkinsert('jobs',result);
     }
+
+    await exportToJson();
     
   }
+
+  await page.close();
 
   return true;
 

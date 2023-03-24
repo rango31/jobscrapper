@@ -17,7 +17,6 @@ const scrap = async (site, browser) => {
   let showmore = await page.$('div.joblist > div.job > div.job-text-div > div.rCmdButtons > a:nth-child(1)');
   await showmore.click();
   await page.waitForTimeout(3000);
-
  
   let lastpage = false;
     
@@ -27,8 +26,7 @@ const scrap = async (site, browser) => {
     const res = await getPageData(page);
     await result.push(res);
     await bulkinsert('jobs',result);
-    await exportToJson();
-
+    
     await page.hover('div.resultVP div.jdet-scr-r');
      const next = await page.$('div.resultVP div.jdet-scr-r');
 
@@ -42,6 +40,8 @@ const scrap = async (site, browser) => {
       lastpage = true;
     }
 }
+
+await exportToJson();
 
 console.log(`Completed scrapping Metajob`);
 return true;
@@ -94,7 +94,6 @@ const getPageData = async (page) => {
   }
   
   return foundJob
-
 }
 
 module.exports = { scrap };

@@ -84,6 +84,8 @@ const scrap = async (site, browser) => {
     
   }
 
+  await page.close();
+
   return true;
 
 };
